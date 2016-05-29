@@ -30,18 +30,17 @@ module RethinkDB
     StreamTerm.new(TermType::RANGE, a, b, step)
   end
 
-  macro define_prefix_notation(name)
-    def self.{{name.id}}(target, *args)
-      r(target).{{name.id}}(*args)
-    end
+  macro define_prefix_notation(*names)
+    {% for name in names %}
+      def self.{{name.id}}(target, *args)
+        r(target).{{name.id}}(*args)
+      end
+    {% end %}
   end
 
   define_prefix_notation type_of
-  define_prefix_notation add
-  define_prefix_notation sub
-  define_prefix_notation mul
-  define_prefix_notation div
-  define_prefix_notation mod
+  define_prefix_notation add, sub, mul, div, mod
+  define_prefix_notation floor, ceil, round
 
   class Term
     def type_of
@@ -122,6 +121,18 @@ module RethinkDB
 
     def mod(*others)
       DatumTerm.new(TermType::MOD, self, *others)
+    end
+
+    def floor()
+      DatumTerm.new(TermType::FLOOR, self)
+    end
+
+    def ceil()
+      DatumTerm.new(TermType::CEIL, self)
+    end
+
+    def round()
+      DatumTerm.new(TermType::ROUND, self)
     end
   end
 
