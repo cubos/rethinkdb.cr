@@ -49,7 +49,8 @@ data["tests"].each_with_index do |test, i|
     subtests.each_with_index do |subtest, j|
       subtest = language_fixes subtest
       puts unless j == 0
-      puts "  it \"passes on test ##{i+1}.#{j+1}\" do"
+      test_id = "##{i+1}.#{j+1}"
+      puts "  #{ARGV.includes?(test_id) ? "pending" : "it"} \"passes on test #{test_id}\" do"
       if output =~ /err\("(\w+)", "([^"]+)"/
         puts "    expect_raises(RethinkDB::#{$1}, #{$2.inspect}) do"
         puts "      (#{subtest}).run($reql_conn)"
