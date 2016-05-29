@@ -30,8 +30,10 @@ describe RethinkDB do
   {{ run("./reql_spec_generator", "spec/rql_test/src/datum/string.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/datum/typeof.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/math_logic/add.yaml") }}
+  {{ run("./reql_spec_generator", "spec/rql_test/src/math_logic/aliases.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/math_logic/div.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/math_logic/floor_ceil_round.yaml", "#30.1", "#34.1") }}
+  {{ run("./reql_spec_generator", "spec/rql_test/src/math_logic/logic.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/math_logic/math.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/math_logic/mod.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/math_logic/mul.yaml") }}

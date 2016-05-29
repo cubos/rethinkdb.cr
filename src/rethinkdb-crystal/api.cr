@@ -41,6 +41,8 @@ module RethinkDB
   define_prefix_notation type_of
   define_prefix_notation add, sub, mul, div, mod
   define_prefix_notation floor, ceil, round
+  define_prefix_notation gt, ge, lt, le, eq, ne
+  define_prefix_notation and, or, not
 
   class Term
     def type_of
@@ -53,6 +55,12 @@ module RethinkDB
 
     def count
       DatumTerm.new(TermType::COUNT, self)
+    end
+  end
+
+  class DatumTerm
+    def default(value)
+      DatumTerm.new(TermType::DEFAULT, self, value)
     end
 
     def split
@@ -134,11 +142,91 @@ module RethinkDB
     def round()
       DatumTerm.new(TermType::ROUND, self)
     end
+
+    def >(other)
+      DatumTerm.new(TermType::GT, self, other)
+    end
+
+    def gt(other)
+      DatumTerm.new(TermType::GT, self, other)
+    end
+
+    def >=(other)
+      DatumTerm.new(TermType::GE, self, other)
+    end
+
+    def ge(other)
+      DatumTerm.new(TermType::GE, self, other)
+    end
+
+    def <(other)
+      DatumTerm.new(TermType::LT, self, other)
+    end
+
+    def lt(other)
+      DatumTerm.new(TermType::LT, self, other)
+    end
+
+    def <=(other)
+      DatumTerm.new(TermType::LE, self, other)
+    end
+
+    def le(other)
+      DatumTerm.new(TermType::LE, self, other)
+    end
+
+    def ==(other)
+      DatumTerm.new(TermType::EQ, self, other)
+    end
+
+    def eq(other)
+      DatumTerm.new(TermType::EQ, self, other)
+    end
+
+    def !=(other)
+      DatumTerm.new(TermType::NE, self, other)
+    end
+
+    def ne(other)
+      DatumTerm.new(TermType::NE, self, other)
+    end
+
+    def &(other)
+      DatumTerm.new(TermType::AND, self, other)
+    end
+
+    def and(*others)
+      DatumTerm.new(TermType::AND, self, *others)
+    end
+
+    def |(other)
+      DatumTerm.new(TermType::OR, self, other)
+    end
+
+    def or(*others)
+      DatumTerm.new(TermType::OR, self, *others)
+    end
+
+    def ~
+      DatumTerm.new(TermType::NOT, self)
+    end
+
+    def not
+      DatumTerm.new(TermType::NOT, self)
+    end
+
+    def [](key)
+      DatumTerm.new(TermType::BRACKET, self, key)
+    end
   end
 
   class StreamTerm
     def limit(n)
       StreamTerm.new(TermType::LIMIT, self, n)
+    end
+
+    def [](key)
+      StreamTerm.new(TermType::BRACKET, self, key)
     end
   end
 
