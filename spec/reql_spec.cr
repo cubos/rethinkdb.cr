@@ -14,6 +14,7 @@ struct ReqlMatchers
 end
 
 def match_reql_output(result)
+  result = result.to_a if result.is_a? RethinkDB::Cursor
   matcher = with ReqlMatchers.new yield
   if matcher.is_a? Matcher
     matcher.match(result)
@@ -28,6 +29,7 @@ describe RethinkDB do
   {{ run("./reql_spec_generator", "spec/rql_test/src/datum/number.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/datum/string.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/datum/typeof.yaml") }}
+  {{ run("./reql_spec_generator", "spec/rql_test/src/range.yaml") }}
 end
 
 

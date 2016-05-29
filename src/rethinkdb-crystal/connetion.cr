@@ -137,37 +137,6 @@ module RethinkDB
       return response.r[0]
     end
 
-    class Cursor
-      include Iterator(QueryResult)
-
-      def initialize(@stream : ResponseStream, @response : Response)
-        @index = 0
-      end
-
-      def fetch_next
-        @response = @stream.query_continue
-        @index = 0
-
-        unless @response.t == ResponseType::SUCCESS_SEQUENCE || @response.t == ResponseType::SUCCESS_PARTIAL
-          raise ReqlDriverError.new("Expected SUCCESS_SEQUENCE or SUCCESS_PARTIAL but got #{@response.t}")
-        end
-      end
-
-      def next
-        while @index == @response.r.size
-          if @response.t == ResponseType::SUCCESS_SEQUENCE
-            return Iterator::Stop.new
-          else
-            fetch_next
-          end
-        end
-
-        value = @response.r[@index]
-        @index += 1
-        return value
-      end
-    end
-
     def query_cursor(term)
       stream = ResponseStream.new(self)
       response = stream.query_term(term)
@@ -177,6 +146,37 @@ module RethinkDB
       end
 
       Cursor.new(stream, response)
+    end
+  end
+
+  class Cursor
+    include Iterator(QueryResult)
+
+    def initialize(@stream : Connection::ResponseStream, @response : Connection::Response)
+      @index = 0
+    end
+
+    def fetch_next
+      @response = @stream.query_continue
+      @index = 0
+
+      unless @response.t == ResponseType::SUCCESS_SEQUENCE || @response.t == ResponseType::SUCCESS_PARTIAL
+        raise ReqlDriverError.new("Expected SUCCESS_SEQUENCE or SUCCESS_PARTIAL but got #{@response.t}")
+      end
+    end
+
+    def next
+      while @index == @response.r.size
+        if @response.t == ResponseType::SUCCESS_SEQUENCE
+          return Iterator::Stop.new
+        else
+          fetch_next
+        end
+      end
+
+      value = @response.r[@index]
+      @index += 1
+      return value
     end
   end
 end

@@ -14,8 +14,20 @@ module RethinkDB
     DatumTerm.new(TermType::NOW)
   end
 
+  def self.range
+    StreamTerm.new(TermType::RANGE)
+  end
+
+  def self.range(a)
+    StreamTerm.new(TermType::RANGE, a)
+  end
+
   def self.range(a, b)
     StreamTerm.new(TermType::RANGE, a, b)
+  end
+
+  def self.range(a, b, step)
+    StreamTerm.new(TermType::RANGE, a, b, step)
   end
 
   macro define_prefix_notation(name)
@@ -65,6 +77,12 @@ module RethinkDB
 
     def downcase
       DatumTerm.new(TermType::DOWNCASE, self)
+    end
+  end
+
+  class StreamTerm
+    def limit(n)
+      StreamTerm.new(TermType::LIMIT, self, n)
     end
   end
 

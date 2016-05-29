@@ -54,6 +54,10 @@ data["tests"].each_with_index do |test, i|
         puts "    expect_raises(RethinkDB::#{$1}, #{$2.inspect}) do"
         puts "      (#{subtest}).run($reql_conn)"
         puts "    end"
+      elsif output =~ /err_regex\("(\w+)", "([^"]+)"/
+        puts "    expect_raises(RethinkDB::#{$1}, /#{$2.gsub("\\\\", "\\")}/) do"
+        puts "      (#{subtest}).run($reql_conn)"
+        puts "    end"
       else
         puts "    result = (#{subtest}).run($reql_conn)"
         puts "    match_reql_output(result) { #{output} }"
