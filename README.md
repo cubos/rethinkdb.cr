@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/lbguilherme/rethinkdb-crystal.svg?branch=master)](https://travis-ci.org/lbguilherme/rethinkdb-crystal)
+
 # rethinkdb-crystal
 
 This is a RethinkDB Driver for Crystal.
