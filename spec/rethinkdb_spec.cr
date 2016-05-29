@@ -2,15 +2,15 @@ require "./spec_helper"
 
 describe RethinkDB do
   it "successfuly connects to the database" do
-    conn = r.connect({host: "rethinkdb"})
+    conn = r.connect({host: $rethinkdb_host})
   end
 
   it "rejects an invalid auth_key" do
     expect_raises(RethinkDB::ReqlDriverError, "ERROR: Incorrect authorization key.") do
-      r.connect({host: "rethinkdb", auth_key: "owenfvoraewugbjbkv"})
+      r.connect({host: $rethinkdb_host, auth_key: "owenfvoraewugbjbkv"})
     end
     expect_raises(RethinkDB::ReqlDriverError, "ERROR: Incorrect authorization key.") do
-      r.connect({host: "rethinkdb", auth_key: "ԱԲԳԴԵԶԷԸԹԺԻԼԽԾ"})
+      r.connect({host: $rethinkdb_host, auth_key: "ԱԲԳԴԵԶԷԸԹԺԻԼԽԾ"})
     end
   end
 

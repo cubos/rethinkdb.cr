@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 $reql_conn : RethinkDB::Connection
-$reql_conn = r.connect({host: "rethinkdb"})
+$reql_conn = r.connect({host: $rethinkdb_host})
 
 struct ReqlMatchers
   def int_cmp(value)
