@@ -1,7 +1,15 @@
 require "yaml"
 
 def yaml_fixes(str)
-  str = str.gsub(/(\w+): (.+)\n/) { "#{$1}: \"#{$2.gsub("\"", "'")}\"\n" }
+  str = str.gsub(/(\w+): (.+)\n/) do
+    var = $1
+    value = $2
+    if value =~ /^[^r][a-z]+\(.*\)$/
+      "#{var}: \'#{value.gsub("'", "\"")}\'\n"
+    else
+      "#{var}: \"#{value.gsub("\"", "'")}\"\n"
+    end
+  end
   str = str.gsub("\\", "\\\\")
   str
 end
@@ -41,9 +49,8 @@ data["tests"].each_with_index do |test, i|
       output = output["rb"]? || output["cd"]
     end
     output = language_fixes output.as_s
-    if output =~ /ReqlCompileError/ && output =~ /Expected \d+ argument/
-      next
-    end
+    next if output =~ /ReqlCompileError/ && output =~ /Expected \d+ argument/
+    next if output =~ /ReqlDriverCompileError/
 
     puts unless i == 0
     subtests.each_with_index do |subtest, j|
@@ -51,11 +58,11 @@ data["tests"].each_with_index do |test, i|
       puts unless j == 0
       test_id = "##{i+1}.#{j+1}"
       puts "  #{ARGV.includes?(test_id) ? "pending" : "it"} \"passes on test #{test_id}\" do"
-      if output =~ /err\("(\w+)", "([^"]+)"/
-        puts "    expect_raises(RethinkDB::#{$1}, #{$2.inspect}) do"
+      if output =~ /err\("(\w+)", "(.+?)",/
+        puts "    expect_raises(RethinkDB::#{$1}, \"#{$2.gsub("\\\\", "\\")}\") do"
         puts "      (#{subtest}).run($reql_conn)"
         puts "    end"
-      elsif output =~ /err_regex\("(\w+)", "([^"]+)"/
+      elsif output =~ /err_regex\("(\w+)", "(.+?)",/
         puts "    expect_raises(RethinkDB::#{$1}, /#{$2.gsub("\\\\", "\\")}/) do"
         puts "      (#{subtest}).run($reql_conn)"
         puts "    end"
