@@ -1,5 +1,6 @@
 require "spec"
 require "../src/rethinkdb-crystal"
+include RethinkDB::Shotcuts
 
 begin
   r.connect({host: "rethinkdb"}).close
