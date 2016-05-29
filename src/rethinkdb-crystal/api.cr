@@ -37,6 +37,11 @@ module RethinkDB
   end
 
   define_prefix_notation type_of
+  define_prefix_notation add
+  define_prefix_notation sub
+  define_prefix_notation mul
+  define_prefix_notation div
+  define_prefix_notation mod
 
   class Term
     def type_of
@@ -78,6 +83,46 @@ module RethinkDB
     def downcase
       DatumTerm.new(TermType::DOWNCASE, self)
     end
+
+    def +(other)
+      DatumTerm.new(TermType::ADD, self, other)
+    end
+
+    def add(*others)
+      DatumTerm.new(TermType::ADD, self, *others)
+    end
+
+    def -(other)
+      DatumTerm.new(TermType::SUB, self, other)
+    end
+
+    def sub(*others)
+      DatumTerm.new(TermType::SUB, self, *others)
+    end
+
+    def *(other)
+      DatumTerm.new(TermType::MUL, self, other)
+    end
+
+    def mul(*others)
+      DatumTerm.new(TermType::MUL, self, *others)
+    end
+
+    def /(other)
+      DatumTerm.new(TermType::DIV, self, other)
+    end
+
+    def div(*others)
+      DatumTerm.new(TermType::DIV, self, *others)
+    end
+
+    def %(other)
+      DatumTerm.new(TermType::MOD, self, other)
+    end
+
+    def mod(*others)
+      DatumTerm.new(TermType::MOD, self, *others)
+    end
   end
 
   class StreamTerm
@@ -93,5 +138,27 @@ module RethinkDB
   end
 
   class TableTerm < StreamTerm
+  end
+end
+
+struct Number
+  def +(other : RethinkDB::DatumTerm)
+    r(self) + other
+  end
+
+  def -(other : RethinkDB::DatumTerm)
+    r(self) - other
+  end
+
+  def *(other : RethinkDB::DatumTerm)
+    r(self) * other
+  end
+
+  def /(other : RethinkDB::DatumTerm)
+    r(self) / other
+  end
+
+  def %(other : RethinkDB::DatumTerm)
+    r(self) % other
   end
 end
