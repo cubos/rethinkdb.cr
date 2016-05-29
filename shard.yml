@@ -1,0 +1,7 @@
+name: rethinkdb-crystal
+version: 0.1.0
+
+authors:
+  - Guilherme Bernal <dev@lbguilherme.com>
+
+license: MIT
