@@ -2,24 +2,42 @@ require "./spec_helper"
 
 $reql_conn : RethinkDB::Connection
 $reql_conn = r.connect({host: $rethinkdb_host})
-
-struct ReqlMatchers
-  def int_cmp(value)
-    IntCmpMatcher.new(value.to_i64)
-  end
-
-  def float_cmp(value)
-    FloatCmpMatcher.new(value.to_f64)
-  end
-end
+r.db("test").table_list.for_each do |name|
+  r.db("test").table_drop(name)
+end.run($reql_conn)
 
 def match_reql_output(result)
   result = result.to_a if result.is_a? RethinkDB::Cursor
   matcher = with ReqlMatchers.new yield
-  if matcher.is_a? Matcher
-    matcher.match(result)
+  recursive_match result, matcher
+end
+
+def recursive_match(result, target)
+  case target
+  when Matcher
+    target.match(result)
+  when Array
+    result.raw.should be_a Array(RethinkDB::QueryResult::Type)
+    result.size.should eq target.size
+    result.size.times do |i|
+      recursive_match result[i], target[i]
+    end
+  when Hash
+    result.raw.should be_a Hash(String, RethinkDB::QueryResult::Type)
+    result.keys.sort.should eq target.keys.sort
+    result.keys.each do |key|
+      recursive_match result[key], target[key]
+    end
   else
-    result.should eq matcher
+    result.should eq target
+  end
+end
+
+def recursive_match(result : Array, target)
+  result.should be_a Array(RethinkDB::QueryResult)
+  result.size.should eq target.size
+  result.size.times do |i|
+    recursive_match result[i], target[i]
   end
 end
 
@@ -38,9 +56,31 @@ describe RethinkDB do
   {{ run("./reql_spec_generator", "spec/rql_test/src/math_logic/mod.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/math_logic/mul.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/math_logic/sub.yaml") }}
+  {{ run("./reql_spec_generator", "spec/rql_test/src/control.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/range.yaml") }}
 end
 
+struct ReqlMatchers
+  def int_cmp(value)
+    IntCmpMatcher.new(value.to_i64)
+  end
+
+  def float_cmp(value)
+    FloatCmpMatcher.new(value.to_f64)
+  end
+
+  def uuid
+    UUIDMatcher.new
+  end
+
+  def arrlen(len, matcher)
+    ArrayMatcher.new(len, matcher)
+  end
+
+  def partial(matcher)
+    PartialMatcher.new(matcher)
+  end
+end
 
 abstract struct Matcher
 end
@@ -62,5 +102,38 @@ struct FloatCmpMatcher < Matcher
   def match(result)
     result.should eq @value
     result.raw.should be_a Float64
+  end
+end
+
+struct UUIDMatcher < Matcher
+  def match(result)
+    result.raw.should be_a String
+    result.as_s.should Spec::MatchExpectation.new(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
+  end
+end
+
+struct ArrayMatcher(T) < Matcher
+  def initialize(@size : Int32, @matcher : T)
+  end
+
+  def match(result)
+    result.raw.should be_a Array(RethinkDB::QueryResult::Type)
+    result.size.should eq @size
+    result.each do |value|
+      recursive_match value, @matcher
+    end
+  end
+end
+
+struct PartialMatcher(T) < Matcher
+  def initialize(@object : Hash(String, T))
+  end
+
+  def match(result)
+    result.raw.should be_a Hash(String, RethinkDB::QueryResult::Type)
+    @object.keys.each do |key|
+      result.keys.includes?(key).should be_true
+      recursive_match result[key], @object[key]
+    end
   end
 end

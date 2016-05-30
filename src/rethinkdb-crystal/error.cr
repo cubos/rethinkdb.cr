@@ -13,4 +13,7 @@ module RethinkDB
 
   class ReqlQueryLogicError < Exception
   end
+
+  class ReqlUserError < Exception
+  end
 end

@@ -78,7 +78,13 @@ module RethinkDB
 
       def query_term(term)
         send_query [QueryType::START, term.to_reql, {} of String => String].to_json
-        read_response
+        begin
+          read_response
+        rescue e : ReqlClientError
+          puts e.message
+          puts [QueryType::START, term.to_reql, {} of String => String].to_json
+          raise e
+        end
       end
 
       def query_continue
@@ -112,8 +118,10 @@ module RethinkDB
           case response.e
           when ErrorType::QUERY_LOGIC
             raise ReqlQueryLogicError.new(msg)
+          when ErrorType::USER
+            raise ReqlUserError.new(msg)
           else
-            raise ReqlRunTimeError.new(msg)
+            raise ReqlRunTimeError.new(response.e.to_s + ": " + msg)
           end
         end
 
@@ -124,6 +132,13 @@ module RethinkDB
         @conn.@channels.delete @id
         @id = 0u64
       end
+    end
+
+    def query_error(term)
+      stream = ResponseStream.new(self)
+      response = stream.query_term(term)
+
+      raise ReqlDriverError.new("An r.error should never return successfully")
     end
 
     def query_datum(term)

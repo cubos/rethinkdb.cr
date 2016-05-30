@@ -1,16 +1,17 @@
 require "yaml"
 
 def yaml_fixes(str)
+  str = str.gsub("\\", "\\\\")
   str = str.gsub(/(\w+): (.+)\n/) do
     var = $1
     value = $2
-    if value =~ /^[^r][a-z]+\(.*\)$/
-      "#{var}: \'#{value.gsub("'", "\"")}\'\n"
-    else
-      "#{var}: \"#{value.gsub("\"", "'")}\"\n"
-    end
+    "#{var}: \"#{value.gsub("\"", "\\\"")}\"\n"
   end
-  str = str.gsub("\\", "\\\\")
+  str
+end
+
+def quotes_fixes(str)
+  str = str.gsub(/'([^']*)'/) { "\"#{$1.gsub("\"", "\\\"")}\"" }
   str
 end
 
@@ -25,19 +26,33 @@ def language_fixes(str)
   str = str.gsub(regex) do
     "#{$1}#{lang_replaces[$2]}#{$3}"
   end
-  str = str.gsub("'", "\"")
+  str = quotes_fixes(str)
   str = str.gsub("[]", "[] of Int32")
-  str = str.gsub("{}", "{} of String => Int32")
+  str = str.gsub(/([^\)\s]\s*){}/) { "#{$1}{} of String => Int32" }
+  str = str.gsub(/([^\\])\":/) { "#{$1}\" => " }
   str
 end
 
 data = YAML.parse(yaml_fixes File.read(ARGV[0]))
 
 puts "describe #{data["desc"].inspect} do"
+if tables = data["table_variable_name"]?
+  puts
+  tables.as_s.split(", ").each_with_index do |tablevar, i|
+    random_name = "test_#{Time.now.epoch}_#{rand(10000)}_#{i+1}"
+    puts "  r.db(\"test\").table_create(#{random_name.inspect}).run($reql_conn)"
+    puts "  #{tablevar} = r.db(\"test\").table(#{random_name.inspect})"
+  end
+end
 data["tests"].each_with_index do |test, i|
   if d = test["def"]?
     puts "  #{language_fixes (d["rb"]? || d["cd"]).as_s}"
-  else
+  elsif test["ot"]? == nil && (test["rb"]? || test["cd"]?)
+    assign = (language_fixes (test["rb"]? || test["cd"]).as_s).split("=")
+    var = assign[0].strip
+    value = assign[1].strip
+    puts "  #{var} = #{value}.run($reql_conn).as_i"
+  else test["ot"]?
     subtests = test["rb"]? || test["cd"]?
     next unless subtests
     next if subtests == ""
@@ -48,8 +63,9 @@ data["tests"].each_with_index do |test, i|
     unless output.raw.is_a? String
       output = output["rb"]? || output["cd"]
     end
-    output = language_fixes output.as_s
+    output = quotes_fixes output.as_s
     next if output =~ /ReqlCompileError/ && output =~ /Expected \d+ argument/
+    next if output =~ /ReqlQueryLogicError/ && output =~ /Expected function with \d+ argument/
     next if output =~ /ReqlDriverCompileError/
 
     puts unless i == 0
@@ -57,18 +73,18 @@ data["tests"].each_with_index do |test, i|
       subtest = language_fixes subtest
       puts unless j == 0
       test_id = "##{i+1}.#{j+1}"
-      puts "  #{ARGV.includes?(test_id) ? "pending" : "it"} \"passes on test #{test_id}\" do"
-      if output =~ /err\("(\w+)", "(.+?)",/
+      puts "  #{ARGV.includes?(test_id) ? "pending" : "it"} \"passes on test #{test_id}: #{subtest.gsub("\\", "\\\\").gsub("\"", "\\\"")}\" do"
+      if output =~ /err\("(\w+)", "(.+?)"[,)]/
         puts "    expect_raises(RethinkDB::#{$1}, \"#{$2.gsub("\\\\", "\\")}\") do"
         puts "      (#{subtest}).run($reql_conn)"
         puts "    end"
-      elsif output =~ /err_regex\("(\w+)", "(.+?)",/
+      elsif output =~ /err_regex\("(\w+)", "(.+?)"[,)]/
         puts "    expect_raises(RethinkDB::#{$1}, /#{$2.gsub("\\\\", "\\")}/) do"
         puts "      (#{subtest}).run($reql_conn)"
         puts "    end"
       else
         puts "    result = (#{subtest}).run($reql_conn)"
-        puts "    match_reql_output(result) { #{output} }"
+        puts "    match_reql_output(result) { #{language_fixes output} }"
       end
       puts "  end"
     end

@@ -12,6 +12,15 @@ class Array(T)
   end
 end
 
+struct Tuple
+  def to_reql
+    Array(JSON::Type){
+      RethinkDB::TermType::MAKE_ARRAY.to_i64,
+      to_a.map {|x| x.to_reql as JSON::Type } as JSON::Type
+    } as JSON::Type
+  end
+end
+
 class Hash(K, V)
   def to_reql
     hash = {} of String => JSON::Type
@@ -70,6 +79,8 @@ end
 
 module RethinkDB
   struct QueryResult
+    include Enumerable(self)
+    
     alias Type = Nil | Bool | Int64 | Float64 | String | Time | Array(Type) | Hash(String, Type)
     property raw : Type
 
@@ -108,6 +119,82 @@ module RethinkDB
         end
       else
         raise "Unknown pull kind: #{pull.kind}"
+      end
+    end
+
+    def initialize(@raw : Type)
+    end
+
+    def size : Int
+      case object = @raw
+      when Array
+        object.size
+      when Hash
+        object.size
+      else
+        raise "expected Array or Hash for #size, not #{object.class}"
+      end
+    end
+
+    def keys
+      case object = @raw
+      when Hash
+        object.keys
+      else
+        raise "expected Hash for #keys, not #{object.class}"
+      end
+    end
+
+    def [](index : Int) : QueryResult
+      case object = @raw
+      when Array
+        QueryResult.new object[index]
+      else
+        raise "expected Array for #[](index : Int), not #{object.class}"
+      end
+    end
+
+    def []?(index : Int) : QueryResult?
+      case object = @raw
+      when Array
+        value = object[index]?
+        value ? QueryResult.new(value) : nil
+      else
+        raise "expected Array for #[]?(index : Int), not #{object.class}"
+      end
+    end
+
+    def [](key : String) : QueryResult
+      case object = @raw
+      when Hash
+        QueryResult.new object[key]
+      else
+        raise "expected Hash for #[](key : String), not #{object.class}"
+      end
+    end
+
+    def []?(key : String) : QueryResult?
+      case object = @raw
+      when Hash
+        value = object[key]?
+        value ? QueryResult.new(value) : nil
+      else
+        raise "expected Hash for #[]?(key : String), not #{object.class}"
+      end
+    end
+
+    def each
+      case object = @raw
+      when Array
+        object.each do |elem|
+          yield QueryResult.new(elem), QueryResult.new(nil)
+        end
+      when Hash
+        object.each do |key, value|
+          yield QueryResult.new(key), QueryResult.new(value)
+        end
+      else
+        raise "expected Array or Hash for #each, not #{object.class}"
       end
     end
 
