@@ -27,7 +27,7 @@ include RethinkDB::Shotcuts
 # Let’s connect and create a table:
 
 conn = r.connect({host: "localhost"})
-r.db("test").tableCreate("tv_shows").run(conn)
+r.db("test").table_create("tv_shows").run(conn)
 
 # Now, let’s insert some JSON documents into the table:
 
