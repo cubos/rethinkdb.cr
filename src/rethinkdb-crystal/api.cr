@@ -363,6 +363,10 @@ module RethinkDB
     def insert(doc)
       DatumTerm.new(TermType::INSERT, [self, doc])
     end
+
+    def get(key)
+      DatumTerm.new(TermType::GET, [self, key])
+    end
   end
 end
 
