@@ -67,6 +67,14 @@ module RethinkDB
     DatumTerm.new(TermType::OBJECT, args.to_a)
   end
 
+  def self.uuid()
+    DatumTerm.new(TermType::UUID)
+  end
+
+  def self.uuid(source)
+    DatumTerm.new(TermType::UUID, [source])
+  end
+
   macro define_prefix_notation(*names)
     {% for name in names %}
       def self.{{name.id}}(target, *args)
@@ -318,6 +326,10 @@ module RethinkDB
 
     def for_each
       DatumTerm.new(TermType::FOR_EACH, [self, Func.arity1 {|row| yield(row) }])
+    end
+
+    def distinct
+      DatumTerm.new(TermType::DISTINCT, [self])
     end
   end
 
