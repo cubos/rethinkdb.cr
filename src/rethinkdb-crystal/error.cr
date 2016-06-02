@@ -16,4 +16,7 @@ module RethinkDB
 
   class ReqlUserError < Exception
   end
+
+  class ReqlNonExistenceError < Exception
+  end
 end

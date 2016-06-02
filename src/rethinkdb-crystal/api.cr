@@ -272,6 +272,26 @@ module RethinkDB
       DatumTerm.new(TermType::APPEND, [self, value])
     end
 
+    def insert_at(index, value)
+      DatumTerm.new(TermType::INSERT_AT, [self, index, value])
+    end
+
+    def change_at(index, value)
+      DatumTerm.new(TermType::CHANGE_AT, [self, index, value])
+    end
+
+    def splice_at(index, array)
+      DatumTerm.new(TermType::SPLICE_AT, [self, index, array])
+    end
+
+    def delete_at(index)
+      DatumTerm.new(TermType::DELETE_AT, [self, index])
+    end
+
+    def delete_at(begin_index, end_index)
+      DatumTerm.new(TermType::DELETE_AT, [self, begin_index, end_index])
+    end
+
     def filter(callable)
       DatumTerm.new(TermType::FILTER, [self, callable])
     end
