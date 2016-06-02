@@ -46,6 +46,7 @@ describe RethinkDB do
   {{ run("./reql_spec_generator", "spec/rql_test/src/datum/bool.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/datum/null.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/datum/number.yaml") }}
+  {{ run("./reql_spec_generator", "spec/rql_test/src/datum/object.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/datum/string.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/datum/typeof.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/math_logic/add.yaml") }}

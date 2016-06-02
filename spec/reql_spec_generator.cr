@@ -29,7 +29,10 @@ def language_fixes(str)
   str = quotes_fixes(str)
   str = str.gsub("[]", "[] of Int32")
   str = str.gsub(/([^\)\s]\s*){}/) { "#{$1}{} of String => Int32" }
+  str = str.gsub(/^{}$/, "{} of String => Int32")
   str = str.gsub(/([^\\])\":/) { "#{$1}\" => " }
+  str = str.gsub(/(\w+):/) { "#{$1}: " }
+  str = str.gsub(/(\d+):/) { "\"#{$1}\" => " }
   str
 end
 
@@ -64,7 +67,8 @@ data["tests"].each_with_index do |test, i|
       output = output["rb"]? || output["cd"]
     end
     output = quotes_fixes output.as_s
-    next if output =~ /ReqlCompileError/ && output =~ /Expected \d+ argument/
+    next if output =~ /ReqlCompileError/ && output =~ /argument/
+    next if output =~ /ReqlCompileError/ && output =~ /Object keys must be strings/
     next if output =~ /ReqlQueryLogicError/ && output =~ /Expected function with \d+ argument/
     next if output =~ /ReqlDriverCompileError/
 
@@ -74,17 +78,17 @@ data["tests"].each_with_index do |test, i|
       puts unless j == 0
       test_id = "##{i+1}.#{j+1}"
       puts "  #{ARGV.includes?(test_id) ? "pending" : "it"} \"passes on test #{test_id}: #{subtest.gsub("\\", "\\\\").gsub("\"", "\\\"")}\" do"
-      if output =~ /err\("(\w+)", "(.+?)"[,)]/
+      if output =~ /err\("(\w+)",\s?"(.+?)"[,)]/
         puts "    expect_raises(RethinkDB::#{$1}, \"#{$2.gsub("\\\\", "\\")}\") do"
         puts "      (#{subtest}).run($reql_conn)"
         puts "    end"
-      elsif output =~ /err_regex\("(\w+)", "(.+?)"[,)]/
+      elsif output =~ /err_regex\("(\w+)",\s?"(.+?)"[,)]/
         puts "    expect_raises(RethinkDB::#{$1}, /#{$2.gsub("\\\\", "\\")}/) do"
         puts "      (#{subtest}).run($reql_conn)"
         puts "    end"
       else
         puts "    result = (#{subtest}).run($reql_conn)"
-        puts "    match_reql_output(result) { #{language_fixes output} }"
+        puts "    match_reql_output(result) { (#{language_fixes output}) }"
       end
       puts "  end"
     end

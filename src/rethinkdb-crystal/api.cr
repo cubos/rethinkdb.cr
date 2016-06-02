@@ -63,6 +63,10 @@ module RethinkDB
     DatumTerm.new(TermType::JAVASCRIPT, [code], options)
   end
 
+  def self.object(*args)
+    DatumTerm.new(TermType::OBJECT, args.to_a)
+  end
+
   macro define_prefix_notation(*names)
     {% for name in names %}
       def self.{{name.id}}(target, *args)
