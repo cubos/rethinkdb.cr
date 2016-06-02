@@ -379,13 +379,27 @@ module RethinkDB
     end
   end
 
+  class RowTerm < DatumTerm
+    def update(doc)
+      DatumTerm.new(TermType::UPDATE, [self, doc])
+    end
+
+    def replace(doc)
+      DatumTerm.new(TermType::REPLACE, [self, doc])
+    end
+
+    def delete
+      DatumTerm.new(TermType::DELETE, [self])
+    end
+  end
+
   class TableTerm < RowsTerm
     def insert(doc)
       DatumTerm.new(TermType::INSERT, [self, doc])
     end
 
     def get(key)
-      DatumTerm.new(TermType::GET, [self, key])
+      RowTerm.new(TermType::GET, [self, key])
     end
   end
 end
