@@ -54,3 +54,8 @@ p r.table("tv_shows").filter {|show| show["episodes"] > 100 }.run(conn).to_a
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
 5. Create a new Pull Request
+
+## Contributors
+
+- **[Cubos Tecnologia](https://cubos.io/)**
+- [lbguilherme](https://github.com/lbguilherme) - maintainer
