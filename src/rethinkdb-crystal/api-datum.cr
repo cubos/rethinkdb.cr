@@ -14,6 +14,10 @@ module RethinkDB
       DatumTerm.new(TermType::DEFAULT, [self, value])
     end
 
+    def default
+      DatumTerm.new(TermType::DEFAULT, [self, Func.arity1 {|row| yield(row) }])
+    end
+
     def split
       DatumTerm.new(TermType::SPLIT, [self])
     end
@@ -218,6 +222,10 @@ module RethinkDB
       DatumTerm.new(TermType::FILTER, [self, Func.arity1 {|row| yield(row) }])
     end
 
+    def filter(**kargs)
+      DatumTerm.new(TermType::FILTER, [self, Func.arity1 {|row| yield(row) }], kargs)
+    end
+
     def map(callable)
       DatumTerm.new(TermType::MAP, [self, callable])
     end
@@ -236,6 +244,14 @@ module RethinkDB
 
     def distinct
       DatumTerm.new(TermType::DISTINCT, [self])
+    end
+
+    def reduce(callable)
+      DatumTerm.new(TermType::REDUCE, [self, callable])
+    end
+
+    def reduce
+      DatumTerm.new(TermType::REDUCE, [self, Func.arity2 {|a, b| yield(a, b) }])
     end
 
     def limit(count)
@@ -320,6 +336,22 @@ module RethinkDB
 
     def contains
       DatumTerm.new(TermType::CONTAINS, [self, Func.arity1 {|row| yield(row) }])
+    end
+
+    def order_by
+      DatumTerm.new(TermType::ORDER_BY, [self, Func.arity1 {|row| yield(row) }])
+    end
+
+    def order_by(**kargs)
+      DatumTerm.new(TermType::ORDER_BY, [self], kargs.to_h)
+    end
+
+    def order_by(callable)
+      if callable.is_a? Hash || callable.is_a? NamedTuple
+        DatumTerm.new(TermType::ORDER_BY, [self], callable)
+      else
+        DatumTerm.new(TermType::ORDER_BY, [self, callable])
+      end
     end
   end
 end

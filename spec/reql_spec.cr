@@ -61,6 +61,7 @@ describe RethinkDB do
   {{ run("./reql_spec_generator", "spec/rql_test/src/math_logic/sub.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/aggregation.yaml", "#43.1") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/control.yaml") }}
+  {{ run("./reql_spec_generator", "spec/rql_test/src/default.yaml") }}
   {{ run("./reql_spec_generator", "spec/rql_test/src/range.yaml") }}
 end
 

@@ -10,6 +10,14 @@ module RethinkDB
       DatumTerm.new(TermType::COUNT, [self, Func.arity1 {|row| yield(row) }])
     end
 
+    def default(value)
+      DatumTerm.new(TermType::DEFAULT, [self, value])
+    end
+
+    def default
+      DatumTerm.new(TermType::DEFAULT, [self, Func.arity1 {|row| yield(row) }])
+    end
+
     def do(*args)
       r.do(self, *args)
     end
@@ -34,6 +42,14 @@ module RethinkDB
       StreamTerm.new(TermType::FILTER, [self, Func.arity1 {|row| yield(row) }])
     end
 
+    def filter(**kargs)
+      StreamTerm.new(TermType::FILTER, [self, Func.arity1 {|row| yield(row) }], kargs)
+    end
+
+    def pluck(*args)
+      StreamTerm.new(TermType::PLUCK, [self] + args.to_a)
+    end
+
     def map(callable)
       StreamTerm.new(TermType::MAP, [self, callable])
     end
@@ -51,19 +67,19 @@ module RethinkDB
     end
 
     def order_by
-      StreamTerm.new(TermType::ORDER_BY, [self, Func.arity1 {|row| yield(row) }])
+      DatumTerm.new(TermType::ORDER_BY, [self, Func.arity1 {|row| yield(row) }])
     end
 
     def order_by(**kargs)
       StreamTerm.new(TermType::ORDER_BY, [self], kargs.to_h)
     end
 
+    def order_by(options : Hash | NamedTuple)
+      StreamTerm.new(TermType::ORDER_BY, [self], options)
+    end
+
     def order_by(callable)
-      if callable.is_a? Hash || callable.is_a? NamedTuple
-        StreamTerm.new(TermType::ORDER_BY, [self], callable)
-      else
-        StreamTerm.new(TermType::ORDER_BY, [self, callable])
-      end
+      DatumTerm.new(TermType::ORDER_BY, [self, callable])
     end
 
     def sum

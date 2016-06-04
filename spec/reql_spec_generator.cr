@@ -28,15 +28,16 @@ def language_fixes(str)
   end
   str = quotes_fixes(str)
   str = str.gsub("[]", "[] of Int32")
-  str = str.gsub(/([^\)\s]\s*){}/) { "#{$1}{} of String => Int32" }
+  str = str.gsub(/([^\)\s]\s*){}([^"])/) { "#{$1}{} of String => Int32#{$2}" }
   str = str.gsub(/^{}$/, "{} of String => Int32")
   str = str.gsub(/([^\\\d])\":/) { "#{$1}\" => " }
   str = str.gsub(/(\s|\{|,)(\d+):/) { "#{$1}#{$2} => " }
   str = str.gsub(/(\}):/) { "#{$1} => " }
-  str = str.gsub(/(\s|\{|,|\()(\w+):/) { "#{$1}#{$2}: " }
+  str = str.gsub(/(\W\s|\{|,|\()(\w+):/) { "#{$1}#{$2}: " }
   str = str.gsub("nil:", "nil =>")
   str = str.gsub("{{", "{ {")
   str = str.gsub("orderby", "order_by")
+  str = str.gsub(/:(\w+) =>/) { "#{$1}:"}
   str
 end
 
@@ -53,8 +54,12 @@ if tables = data["table_variable_name"]?
 end
 data["tests"].each_with_index do |test, i|
   if d = test["def"]?
-    code = (d["rb"]? || d["cd"]).as_s
-    code = d["js"].as_s if d["js"]? && d["js"].as_s =~ /\* 1000/
+    if d.raw.is_a? Hash
+      code = (d["rb"]? || d["cd"]).as_s
+      code = d["js"].as_s if d["js"]? && d["js"].as_s =~ /\* 1000/
+    else
+      code = d.as_s
+    end
     puts "  #{language_fixes code}"
   elsif test["ot"]? == nil && (test["rb"]? || test["cd"]?)
     assign = (language_fixes (test["rb"]? || test["cd"]).as_s).split("=")

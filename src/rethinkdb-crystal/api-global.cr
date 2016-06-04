@@ -53,6 +53,10 @@ module RethinkDB
   def self.error(reason)
     ErrorTerm.new(TermType::ERROR, [reason])
   end
+ 
+  def self.error()
+    ErrorTerm.new(TermType::ERROR)
+  end
 
   def self.js(code)
     DatumTerm.new(TermType::JAVASCRIPT, [code])

@@ -25,5 +25,9 @@ module RethinkDB
     def filter
       RowsTerm.new(TermType::FILTER, [self, Func.arity1 {|row| yield(row) }])
     end
+
+    def filter(**kargs)
+      RowsTerm.new(TermType::FILTER, [self, Func.arity1 {|row| yield(row) }], kargs)
+    end
   end
 end
