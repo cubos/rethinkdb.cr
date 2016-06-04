@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/lbguilherme/rethinkdb-crystal.svg?branch=master)](https://travis-ci.org/lbguilherme/rethinkdb-crystal)
+[![Build Status](https://travis-ci.org/CubosTecnologia/rethinkdb-crystal.svg?branch=master)](https://travis-ci.org/CubosTecnologia/rethinkdb-crystal)
 
 # rethinkdb-crystal
 
