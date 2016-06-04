@@ -78,20 +78,44 @@ module RethinkDB
   end
 
   class ErrorTerm < Term
+    def run(conn, **runopts)
+      conn.query_error(self, runopts)
+    end
+
     def run(conn)
-      conn.query_error(self)
+      conn.query_error(self, {} of String => String)
+    end
+
+    def run(conn, runopts : Hash | NamedTuple)
+      conn.query_error(self, runopts)
     end
   end
 
   class DatumTerm < Term
+    def run(conn, **runopts)
+      conn.query_datum(self, runopts)
+    end
+
     def run(conn)
-      conn.query_datum(self)
+      conn.query_datum(self, {} of String => String)
+    end
+
+    def run(conn, runopts : Hash | NamedTuple)
+      conn.query_datum(self, runopts)
     end
   end
 
   class StreamTerm < Term
+    def run(conn, **runopts)
+      conn.query_cursor(self, runopts)
+    end
+
     def run(conn)
-      conn.query_cursor(self)
+      conn.query_cursor(self, {} of String => String)
+    end
+
+    def run(conn, runopts : Hash | NamedTuple)
+      conn.query_cursor(self, runopts)
     end
   end
 end

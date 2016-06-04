@@ -7,8 +7,8 @@ class Array(T)
   def to_reql
     Array(JSON::Type){
       RethinkDB::TermType::MAKE_ARRAY.to_i64,
-      map {|x| x.to_reql as JSON::Type } as JSON::Type
-    } as JSON::Type
+      map {|x| x.to_reql.as JSON::Type }.as JSON::Type
+    }.as JSON::Type
   end
 end
 
@@ -16,8 +16,8 @@ struct Tuple
   def to_reql
     Array(JSON::Type){
       RethinkDB::TermType::MAKE_ARRAY.to_i64,
-      to_a.map {|x| x.to_reql as JSON::Type } as JSON::Type
-    } as JSON::Type
+      to_a.map {|x| x.to_reql.as JSON::Type }.as JSON::Type
+    }.as JSON::Type
   end
 end
 
@@ -27,7 +27,7 @@ class Hash(K, V)
     each do |k, v|
       hash[k.to_s] = v.to_reql
     end
-    hash as JSON::Type
+    hash.as JSON::Type
   end
 end
 
@@ -37,50 +37,56 @@ struct NamedTuple
     each do |k, v|
       hash[k.to_s] = v.to_reql
     end
-    hash as JSON::Type
+    hash.as JSON::Type
   end
 end
 
 struct Nil
   def to_reql
-    self as JSON::Type
+    self.as JSON::Type
   end
 end
 
 struct Int
   def to_reql
-    to_i64 as JSON::Type
+    to_i64.as JSON::Type
   end
 end
 
 struct Float
   def to_reql
-    to_f64 as JSON::Type
+    to_f64.as JSON::Type
   end
 end
 
 class String
   def to_reql
-    self as JSON::Type
+    self.as JSON::Type
+  end
+end
+
+struct Symbol
+  def to_reql
+    to_s.as JSON::Type
   end
 end
 
 struct Bool
   def to_reql
-    self as JSON::Type
+    self.as JSON::Type
   end
 end
 
 struct Time
   def to_reql
-    Hash(String, JSON::Type){"$reql_type$": "TIME", "timezone": "+00:00", "epoch_time": to_utc.epoch} as JSON::Type
+    Hash(String, JSON::Type){"$reql_type$": "TIME", "timezone": "+00:00", "epoch_time": to_utc.epoch}.as JSON::Type
   end
 end
 
 module RethinkDB
   struct QueryResult
     include Enumerable(self)
-    
+
     alias Type = Nil | Bool | Int64 | Float64 | String | Time | Array(Type) | Hash(String, Type)
     property raw : Type
 
@@ -107,22 +113,67 @@ module RethinkDB
         pull.read_object do |key|
           hash[key] = QueryResult.new(pull).raw
         end
-        case hash["$reql_type$"]?
-        when "TIME"
-          time = Time.epoch((hash["epoch_time"] as Float64|Int64).to_i)
-          match = (hash["timezone"] as String).match(/([+-]\d\d):(\d\d)/).not_nil!
-          time += match[1].to_i.hours
-          time += match[2].to_i.minutes
-          @raw = time
-        else
+        # case hash["$reql_type$"]?
+        # when "TIME"
+        #   time = Time.epoch((hash["epoch_time"].as Float64|Int64).to_i)
+        #   match = (hash["timezone"].as String).match(/([+-]\d\d):(\d\d)/).not_nil!
+        #   time += match[1].to_i.hours
+        #   time += match[2].to_i.minutes
+        #   @raw = time
+        # when "GROUPED_DATA"
+        #   grouped = [] of Type
+        #   (hash["data"].as Array(Type)).each do |data|
+        #     data = data.as Array(Type)
+        #     group = data[0].as Type
+        #     reduction = data[1].as Type
+        #     grouped << {"group" => group, "reduction" => reduction}.as Type
+        #   end
+        #   @raw = grouped.as Type
+        # else
           @raw = hash
-        end
+        # end
       else
         raise "Unknown pull kind: #{pull.kind}"
       end
     end
 
     def initialize(@raw : Type)
+    end
+
+    def self.transformed(obj : Type, time_format, group_format, binary_format) : Type
+      case obj
+      when Array
+        obj.map {|x| QueryResult.transformed(x, time_format, group_format, binary_format).as Type }.as Type
+      when Hash
+        if obj["$reql_type$"]? == "TIME" && time_format == "native"
+          time = Time.epoch((obj["epoch_time"].as Float64|Int64).to_i)
+          match = (obj["timezone"].as String).match(/([+-]\d\d):(\d\d)/).not_nil!
+          time += match[1].to_i.hours
+          time += match[2].to_i.minutes
+          return time.as Type
+        end
+        if obj["$reql_type$"]? == "GROUPED_DATA" && group_format == "native"
+          grouped = [] of Type
+          (obj["data"].as Array(Type)).each do |data|
+            data = data.as Array(Type)
+            group = data[0].as Type
+            reduction = data[1].as Type
+            grouped << {"group" => group, "reduction" => reduction}.as Type
+          end
+          return QueryResult.transformed(grouped.as Type, time_format, group_format, binary_format)
+        end
+        result = {} of String => Type
+        obj.each do |key, value|
+          result[key] = QueryResult.transformed(value, time_format, group_format, binary_format)
+        end
+        return result.as Type
+      else
+        obj
+      end
+    end
+
+    def transformed(time_format, group_format, binary_format)
+      QueryResult.new(QueryResult.transformed(@raw, time_format, group_format, binary_format))
     end
 
     def size : Int

@@ -67,11 +67,12 @@ module RethinkDB
       })
     end
 
-    class ResponseStream
+    class ResponseStream(T)
       getter id : UInt64
       @channel : Channel::Unbuffered(String)
+      @runopts : T
 
-      def initialize(@conn : Connection)
+      def initialize(@conn : Connection, @runopts)
         @id = @conn.next_id
         @channel = @conn.@channels[id] = Channel(String).new
       end
@@ -127,6 +128,12 @@ module RethinkDB
           end
         end
 
+        response.r = response.r.map &.transformed(
+          time_format: @runopts["time_format"]? || "native",
+          group_format: @runopts["group_format"]? || "native",
+          binary_format: @runopts["binary_format"]? || "native"
+        )
+
         response
       end
 
@@ -136,15 +143,15 @@ module RethinkDB
       end
     end
 
-    def query_error(term)
-      stream = ResponseStream.new(self)
+    def query_error(term, runopts)
+      stream = ResponseStream(typeof(runopts)).new(self, runopts)
       response = stream.query_term(term)
 
       raise ReqlDriverError.new("An r.error should never return successfully")
     end
 
-    def query_datum(term)
-      stream = ResponseStream.new(self)
+    def query_datum(term, runopts)
+      stream = ResponseStream(typeof(runopts)).new(self, runopts)
       response = stream.query_term(term)
 
       unless response.t == ResponseType::SUCCESS_ATOM
@@ -154,8 +161,8 @@ module RethinkDB
       return response.r[0]
     end
 
-    def query_cursor(term)
-      stream = ResponseStream.new(self)
+    def query_cursor(term, runopts)
+      stream = ResponseStream(typeof(runopts)).new(self, runopts)
       response = stream.query_term(term)
 
       unless response.t == ResponseType::SUCCESS_SEQUENCE || response.t == ResponseType::SUCCESS_PARTIAL
@@ -166,10 +173,10 @@ module RethinkDB
     end
   end
 
-  class Cursor
+  class Cursor(T)
     include Iterator(QueryResult)
 
-    def initialize(@stream : Connection::ResponseStream, @response : Connection::Response)
+    def initialize(@stream : Connection::ResponseStream(T), @response : Connection::Response)
       @index = 0
     end
 

@@ -1,109 +1,15 @@
-require "json"
 require "./term"
 
 module RethinkDB
-  def self.db(name)
-    DBTerm.new(TermType::DB, [name])
-  end
-
-  def self.expr(any)
-    DatumTerm.new(any.to_reql)
-  end
-
-  def self.now()
-    DatumTerm.new(TermType::NOW)
-  end
-
-  def self.range
-    StreamTerm.new(TermType::RANGE)
-  end
-
-  def self.range(a)
-    StreamTerm.new(TermType::RANGE, [a])
-  end
-
-  def self.range(a, b)
-    StreamTerm.new(TermType::RANGE, [a, b])
-  end
-
-  def self.range(a, b, step)
-    StreamTerm.new(TermType::RANGE, [a, b, step])
-  end
-
-  def self.do()
-    DatumTerm.new(TermType::FUNCALL)
-  end
-
-  def self.do(*args)
-    args = args.to_a
-    DatumTerm.new(TermType::FUNCALL, [args.pop] + args)
-  end
-
-  def self.do(*args)
-    args = args + {nil, nil, nil, nil, nil}
-    DatumTerm.new(TermType::FUNCALL, [
-      Func.arity5 {|a, b, c, d, e| yield(a, b, c, d, e) },
-      args[0], args[1], args[2], args[3], args[4]
-    ])
-  end
-
-  def self.branch(*args)
-    DatumTerm.new(TermType::BRANCH, args.to_a)
-  end
-
-  def self.error(reason)
-    ErrorTerm.new(TermType::ERROR, [reason])
-  end
-
-  def self.js(code)
-    DatumTerm.new(TermType::JAVASCRIPT, [code])
-  end
-
-  def self.js(code, options)
-    DatumTerm.new(TermType::JAVASCRIPT, [code], options)
-  end
-
-  def self.object(*args)
-    DatumTerm.new(TermType::OBJECT, args.to_a)
-  end
-
-  def self.uuid()
-    DatumTerm.new(TermType::UUID)
-  end
-
-  def self.uuid(source)
-    DatumTerm.new(TermType::UUID, [source])
-  end
-
-  macro define_prefix_notation(*names)
-    {% for name in names %}
-      def self.{{name.id}}(target, *args)
-        r(target).{{name.id}}(*args)
-      end
-    {% end %}
-  end
-
-  define_prefix_notation type_of
-  define_prefix_notation add, sub, mul, div, mod
-  define_prefix_notation floor, ceil, round
-  define_prefix_notation gt, ge, lt, le, eq, ne
-  define_prefix_notation and, or, not
-
-  class Term
-    def type_of
-      DatumTerm.new(TermType::TYPE_OF, [self])
-    end
-
-    def coerce_to(target)
-      DatumTerm.new(TermType::COERCE_TO, [self, target])
-    end
-
+  class DatumTerm
     def count
       DatumTerm.new(TermType::COUNT, [self])
     end
-  end
 
-  class DatumTerm
+    def count
+      DatumTerm.new(TermType::COUNT, [self, Func.arity1 {|row| yield(row) }])
+    end
+
     def default(value)
       DatumTerm.new(TermType::DEFAULT, [self, value])
     end
@@ -331,113 +237,89 @@ module RethinkDB
     def distinct
       DatumTerm.new(TermType::DISTINCT, [self])
     end
-  end
 
-  class StreamTerm
-    def limit(n)
-      StreamTerm.new(TermType::LIMIT, [self, n])
+    def limit(count)
+      DatumTerm.new(TermType::LIMIT, [self, count])
     end
 
-    def [](key)
-      StreamTerm.new(TermType::BRACKET, [self, key])
+    def sum
+      DatumTerm.new(TermType::SUM, [self])
     end
 
-    def filter(callable)
-      StreamTerm.new(TermType::FILTER, [self, callable])
+    def sum
+      DatumTerm.new(TermType::SUM, [self, Func.arity1 {|row| yield(row) }])
     end
 
-    def filter
-      StreamTerm.new(TermType::FILTER, [self, Func.arity1 {|row| yield(row) }])
+    def sum(field)
+      DatumTerm.new(TermType::SUM, [self, field])
     end
 
-    def map(callable)
-      StreamTerm.new(TermType::MAP, [self, callable])
+    def avg
+      DatumTerm.new(TermType::AVG, [self])
     end
 
-    def map
-      StreamTerm.new(TermType::MAP, [self, Func.arity1 {|row| yield(row) }])
+    def avg
+      DatumTerm.new(TermType::AVG, [self, Func.arity1 {|row| yield(row) }])
     end
 
-    def for_each(callable)
-      DatumTerm.new(TermType::FOR_EACH, [self, callable])
+    def avg(field)
+      DatumTerm.new(TermType::AVG, [self, field])
     end
 
-    def for_each
-      DatumTerm.new(TermType::FOR_EACH, [self, Func.arity1 {|row| yield(row) }])
-    end
-  end
-
-  class DBTerm < Term
-    def table(name)
-      TableTerm.new(TermType::TABLE, [self, name])
+    def min
+      DatumTerm.new(TermType::MIN, [self])
     end
 
-    def table_create(name)
-      DatumTerm.new(TermType::TABLE_CREATE, [self, name])
+    def min
+      DatumTerm.new(TermType::MIN, [self, Func.arity1 {|row| yield(row) }])
     end
 
-    def table_drop(name)
-      DatumTerm.new(TermType::TABLE_DROP, [self, name])
+    def min(field)
+      DatumTerm.new(TermType::MIN, [self, field])
     end
 
-    def table_list
-      DatumTerm.new(TermType::TABLE_LIST, [self])
-    end
-  end
-
-  class RowsTerm < StreamTerm
-    def update(doc)
-      DatumTerm.new(TermType::UPDATE, [self, doc])
+    def max
+      DatumTerm.new(TermType::MAX, [self])
     end
 
-    def replace(doc)
-      DatumTerm.new(TermType::REPLACE, [self, doc])
-    end
-  end
-
-  class RowTerm < DatumTerm
-    def update(doc)
-      DatumTerm.new(TermType::UPDATE, [self, doc])
+    def max
+      DatumTerm.new(TermType::MAX, [self, Func.arity1 {|row| yield(row) }])
     end
 
-    def replace(doc)
-      DatumTerm.new(TermType::REPLACE, [self, doc])
+    def max(field)
+      DatumTerm.new(TermType::MAX, [self, field])
     end
 
-    def delete
-      DatumTerm.new(TermType::DELETE, [self])
-    end
-  end
-
-  class TableTerm < RowsTerm
-    def insert(doc)
-      DatumTerm.new(TermType::INSERT, [self, doc])
+    def group(field)
+      GroupedStreamTerm.new(TermType::GROUP, [self, field])
     end
 
-    def get(key)
-      RowTerm.new(TermType::GET, [self, key])
+    def group
+      GroupedStreamTerm.new(TermType::GROUP, [self, Func.arity1 {|row| yield(row) }])
     end
-  end
-end
 
-struct Number
-  def +(other : RethinkDB::DatumTerm)
-    r(self) + other
-  end
+    def union(other)
+      StreamTerm.new(TermType::UNION, [self, other])
+    end
 
-  def -(other : RethinkDB::DatumTerm)
-    r(self) - other
-  end
+    def pluck(*args)
+      DatumTerm.new(TermType::PLUCK, [self] + args.to_a)
+    end
 
-  def *(other : RethinkDB::DatumTerm)
-    r(self) * other
-  end
+    def without(*fields)
+      DatumTerm.new(TermType::WITHOUT, [self] + fields.to_a)
+    end
 
-  def /(other : RethinkDB::DatumTerm)
-    r(self) / other
-  end
+    def contains
+      DatumTerm.new(TermType::CONTAINS, [self])
+    end
 
-  def %(other : RethinkDB::DatumTerm)
-    r(self) % other
+    def contains(other)
+      DatumTerm.new(TermType::CONTAINS, [self, other])
+    end
+
+    def contains
+      DatumTerm.new(TermType::CONTAINS, [self, Func.arity1 {|row| yield(row) }])
+    end
   end
 end
