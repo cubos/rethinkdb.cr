@@ -13,12 +13,12 @@ Add this to your application's `shard.yml`:
 ```yaml
 dependencies:
   rethinkdb-crystal:
-    github: lbguilherme/rethinkdb-crystal
+    github: CubosTecnologia/rethinkdb-crystal
 ```
 
 ## Usage
 
-This library is meant to be compactible with RethinkDB's Ruby API. Thus, all [official documentation](http://rethinkdb.com/api/ruby/) should be valid here. If you find something that behaves differently, please [open an issue](https://github.com/lbguilherme/rethinkdb-crystal/issues/new).
+This library is meant to be compactible with RethinkDB's Ruby API. Thus, all [official documentation](http://rethinkdb.com/api/ruby/) should be valid here. If you find something that behaves differently, please [open an issue](https://github.com/CubosTecnologia/rethinkdb-crystal/issues/new).
 
 ```crystal
 require "rethinkdb-crystal"
@@ -49,12 +49,8 @@ p r.table("tv_shows").filter {|show| show["episodes"] > 100 }.run(conn).to_a
 
 ## Contributing
 
-1. Fork it ( https://github.com/lbguilherme/rethinkdb-crystal/fork )
+1. Fork it ( https://github.com/CubosTecnologia/rethinkdb-crystal/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
 5. Create a new Pull Request
-
-## Contributors
-
-- [lbguilherme](https://github.com/lbguilherme)  - creator, maintainer
