@@ -1,7 +1,7 @@
 require "./rethinkdb-crystal/*"
 
 module RethinkDB
-  module Shotcuts
+  module Shortcuts
     def r
       RethinkDB
     end
