@@ -22,7 +22,7 @@ This library is meant to be compactible with RethinkDB's Ruby API. Thus, all [of
 
 ```crystal
 require "rethinkdb-crystal"
-include RethinkDB::Shotcuts
+include RethinkDB::Shortcuts
 
 # Let’s connect and create a table:
 
