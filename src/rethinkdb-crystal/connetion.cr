@@ -67,23 +67,28 @@ module RethinkDB
       })
     end
 
-    class ResponseStream(T)
+    class ResponseStream
       getter id : UInt64
       @channel : Channel::Unbuffered(String)
-      @runopts : T
+      @runopts : Hash(String, JSON::Type)
 
-      def initialize(@conn : Connection, @runopts)
+      def initialize(@conn : Connection, runopts)
         @id = @conn.next_id
         @channel = @conn.@channels[id] = Channel(String).new
+        @runopts = {} of String => JSON::Type
+        runopts.each do |key, val|
+          @runopts[key] = val
+        end
+        @runopts["db"] = r.db(@conn.@db).to_reql
       end
 
       def query_term(term)
-        send_query [QueryType::START, term.to_reql, {} of String => String].to_json
+        send_query [QueryType::START, term.to_reql, @runopts].to_json
         begin
           read_response
         rescue e : ReqlClientError
           puts e.message
-          puts [QueryType::START, term.to_reql, {} of String => String].to_json
+          puts [QueryType::START, term.to_reql, @runopts].to_json
           raise e
         end
       end
@@ -144,14 +149,14 @@ module RethinkDB
     end
 
     def query_error(term, runopts)
-      stream = ResponseStream(typeof(runopts)).new(self, runopts)
+      stream = ResponseStream.new(self, runopts)
       response = stream.query_term(term)
 
       raise ReqlDriverError.new("An r.error should never return successfully")
     end
 
     def query_datum(term, runopts)
-      stream = ResponseStream(typeof(runopts)).new(self, runopts)
+      stream = ResponseStream.new(self, runopts)
       response = stream.query_term(term)
 
       unless response.t == ResponseType::SUCCESS_ATOM
@@ -176,7 +181,7 @@ module RethinkDB
   class Cursor(T)
     include Iterator(QueryResult)
 
-    def initialize(@stream : Connection::ResponseStream(T), @response : Connection::Response)
+    def initialize(@stream : Connection::ResponseStream, @response : Connection::Response)
       @index = 0
     end
 
