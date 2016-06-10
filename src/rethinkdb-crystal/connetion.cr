@@ -167,7 +167,7 @@ module RethinkDB
     end
 
     def query_cursor(term, runopts)
-      stream = ResponseStream(typeof(runopts)).new(self, runopts)
+      stream = ResponseStream.new(self, runopts)
       response = stream.query_term(term)
 
       unless response.t == ResponseType::SUCCESS_SEQUENCE || response.t == ResponseType::SUCCESS_PARTIAL
