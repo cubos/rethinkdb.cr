@@ -178,7 +178,7 @@ module RethinkDB
     end
   end
 
-  class Cursor(T)
+  class Cursor
     include Iterator(QueryResult)
 
     def initialize(@stream : Connection::ResponseStream, @response : Connection::Response)
