@@ -9,8 +9,16 @@ module RethinkDB
     DatumTerm.new(any.to_reql)
   end
 
-  def self.now()
+  def self.now
     DatumTerm.new(TermType::NOW)
+  end
+
+  def self.minval
+    DatumTerm.new(TermType::MINVAL)
+  end
+
+  def self.maxval
+    DatumTerm.new(TermType::MAXVAL)
   end
 
   def self.range
@@ -53,7 +61,7 @@ module RethinkDB
   def self.error(reason)
     ErrorTerm.new(TermType::ERROR, [reason])
   end
- 
+
   def self.error()
     ErrorTerm.new(TermType::ERROR)
   end
