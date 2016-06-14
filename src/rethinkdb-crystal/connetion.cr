@@ -84,13 +84,7 @@ module RethinkDB
 
       def query_term(term)
         send_query [QueryType::START, term.to_reql, @runopts].to_json
-        begin
-          read_response
-        rescue e : ReqlClientError
-          puts e.message
-          puts [QueryType::START, term.to_reql, @runopts].to_json
-          raise e
-        end
+        read_response
       end
 
       def query_continue
@@ -110,10 +104,7 @@ module RethinkDB
 
       private def read_response
         response = Response.from_json(@channel.receive)
-
-        unless response.t == ResponseType::SUCCESS_PARTIAL
-          finish
-        end
+        finish unless response.t == ResponseType::SUCCESS_PARTIAL
 
         if response.t == ResponseType::CLIENT_ERROR
           raise ReqlClientError.new(response.r[0].to_s)
@@ -163,7 +154,7 @@ module RethinkDB
         raise ReqlDriverError.new("Expected SUCCESS_ATOM but got #{response.t}")
       end
 
-      return response.r[0]
+      response.r[0]
     end
 
     def query_cursor(term, runopts)
@@ -196,11 +187,8 @@ module RethinkDB
 
     def next
       while @index == @response.r.size
-        if @response.t == ResponseType::SUCCESS_SEQUENCE
-          return Iterator::Stop.new
-        else
-          fetch_next
-        end
+        stop if @response.t == ResponseType::SUCCESS_SEQUENCE
+        fetch_next
       end
 
       value = @response.r[@index]
