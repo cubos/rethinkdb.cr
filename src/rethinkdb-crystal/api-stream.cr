@@ -162,8 +162,8 @@ module RethinkDB
       StreamTerm.new(TermType::UNION, [self, other])
     end
 
-    def distinct
-      StreamTerm.new(TermType::DISTINCT, [self])
+    def distinct(**kargs)
+      StreamTerm.new(TermType::DISTINCT, [self], kargs)
     end
 
     def distinct(options : Hash|NamedTuple)

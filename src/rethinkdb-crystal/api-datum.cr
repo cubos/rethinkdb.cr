@@ -246,8 +246,12 @@ module RethinkDB
       DatumTerm.new(TermType::FOR_EACH, [self, Func.arity1 {|row| yield(row) }])
     end
 
-    def distinct
-      DatumTerm.new(TermType::DISTINCT, [self])
+    def distinct(**kargs)
+      DatumTerm.new(TermType::DISTINCT, [self], kargs)
+    end
+
+    def distinct(options : Hash | NamedTuple)
+      DatumTerm.new(TermType::DISTINCT, [self], options)
     end
 
     def reduce(callable)
