@@ -1,4 +1,4 @@
-require "socket/socket"
+require "socket"
 require "socket/tcp_socket"
 require "json"
 require "./serialization"

@@ -105,7 +105,7 @@ module RethinkDB
       end
 
       def self.{{name.id}}(target, *args, **kargs)
-        r(target).{{name.id}}(*args, **kargs) {|a, b, c, d, e| yield(a, b, c, d, e) }
+        r(target).{{name.id}}(*args, **kargs) {|*x| yield(*x) }
       end
     {% end %}
   end

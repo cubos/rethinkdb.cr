@@ -32,6 +32,10 @@ module RethinkDB
     def to_reql
       @reql
     end
+
+    def clone
+      self.class.new(@reql.clone)
+    end
   end
 
   class Func < Term

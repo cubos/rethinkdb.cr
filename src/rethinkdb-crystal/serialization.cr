@@ -79,7 +79,7 @@ end
 
 struct Time
   def to_reql
-    Hash(String, JSON::Type){"$reql_type$": "TIME", "timezone": "+00:00", "epoch_time": to_utc.epoch}.as JSON::Type
+    Hash(String, JSON::Type){"$reql_type$" => "TIME", "timezone" => "+00:00", "epoch_time" => to_utc.epoch}.as JSON::Type
   end
 end
 
