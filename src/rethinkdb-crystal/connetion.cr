@@ -187,7 +187,7 @@ module RethinkDB
 
     def next
       while @index == @response.r.size
-        stop if @response.t == ResponseType::SUCCESS_SEQUENCE
+        return stop if @response.t == ResponseType::SUCCESS_SEQUENCE
         fetch_next
       end
 
