@@ -344,5 +344,9 @@ module RethinkDB
     def as_time? : (Time | Nil)
       as_time if @raw.is_a?(Time)
     end
+
+    def to_reql
+      @raw.to_reql
+    end
   end
 end
