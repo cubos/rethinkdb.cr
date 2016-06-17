@@ -250,7 +250,7 @@ module RethinkDB
       DatumTerm.new(TermType::DISTINCT, [self], kargs)
     end
 
-    def distinct(options : Hash | NamedTuple)
+    def distinct(options : Hash|NamedTuple)
       DatumTerm.new(TermType::DISTINCT, [self], options)
     end
 

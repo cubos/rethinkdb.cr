@@ -174,6 +174,10 @@ module RethinkDB
       StreamTerm.new(TermType::BETWEEN, [self, a, b], options)
     end
 
+    def between(a, b, **kargs)
+      StreamTerm.new(TermType::BETWEEN, [self, a, b], kargs)
+    end
+
     def without(*fields)
       StreamTerm.new(TermType::WITHOUT, [self] + fields.to_a)
     end
