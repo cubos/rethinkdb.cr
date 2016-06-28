@@ -81,6 +81,12 @@ struct Time
   def to_reql
     Hash(String, JSON::Type){"$reql_type$" => "TIME", "timezone" => "+00:00", "epoch_time" => to_utc.epoch}.as JSON::Type
   end
+
+  struct Span
+    def to_reql
+      to_i.to_i64.as JSON::Type
+    end
+  end
 end
 
 module RethinkDB
