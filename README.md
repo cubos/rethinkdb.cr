@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/CubosTecnologia/rethinkdb-crystal.svg?branch=master)](https://travis-ci.org/CubosTecnologia/rethinkdb-crystal)
+[![Build Status](https://travis-ci.org/CubosTecnologia/rethinkdb.cr.svg?branch=master)](https://travis-ci.org/CubosTecnologia/rethinkdb.cr)
 
-# rethinkdb-crystal
+# rethinkdb.cr
 
 This is a [RethinkDB](http://rethinkdb.com/) Driver for the [Crystal Language](http://crystal-lang.org/).
 
@@ -12,16 +12,16 @@ Add this to your application's `shard.yml`:
 
 ```yaml
 dependencies:
-  rethinkdb-crystal:
-    github: CubosTecnologia/rethinkdb-crystal
+  rethinkdb:
+    github: CubosTecnologia/rethinkdb.cr
 ```
 
 ## Usage
 
-This library is meant to be compactible with RethinkDB's Ruby API. Thus, all [official documentation](http://rethinkdb.com/api/ruby/) should be valid here. If you find something that behaves differently, please [open an issue](https://github.com/CubosTecnologia/rethinkdb-crystal/issues/new).
+This library is meant to be compactible with RethinkDB's Ruby API. Thus, all [official documentation](http://rethinkdb.com/api/ruby/) should be valid here. If you find something that behaves differently, please [open an issue](https://github.com/CubosTecnologia/rethinkdb.cr/issues/new).
 
 ```crystal
-require "rethinkdb-crystal"
+require "rethinkdb"
 include RethinkDB::Shortcuts
 
 # Let’s connect and create a table:
@@ -49,7 +49,7 @@ p r.table("tv_shows").filter {|show| show["episodes"] > 100 }.run(conn).to_a
 
 ## Contributing
 
-1. Fork it ( https://github.com/CubosTecnologia/rethinkdb-crystal/fork )
+1. Fork it ( https://github.com/CubosTecnologia/rethinkdb.cr/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)

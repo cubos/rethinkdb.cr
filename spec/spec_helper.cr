@@ -1,5 +1,5 @@
 require "spec"
-require "../src/rethinkdb-crystal"
+require "../src/rethinkdb"
 include RethinkDB::Shortcuts
 
 begin

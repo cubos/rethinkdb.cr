@@ -1,4 +1,4 @@
-require "./rethinkdb-crystal/*"
+require "./rethinkdb/*"
 
 module RethinkDB
   module Shortcuts
