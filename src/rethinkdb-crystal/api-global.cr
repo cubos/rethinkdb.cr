@@ -4,6 +4,18 @@ module RethinkDB
   def self.db(name)
     DBTerm.new(TermType::DB, [name])
   end
+  
+  def self.db_list()
+    DatumTerm.new(TermType::DB_LIST)
+  end
+  
+  def self.db_drop(name)
+    DatumTerm.new(TermType::DB_DROP, [name])
+  end
+  
+  def self.db_create(name)
+    DatumTerm.new(TermType::DB_CREATE, [name])
+  end
 
   def self.expr(any)
     DatumTerm.new(any.to_reql)
