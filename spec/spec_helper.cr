@@ -2,6 +2,8 @@ require "spec"
 require "../src/rethinkdb"
 include RethinkDB::Shortcuts
 
+$rethinkdb_host : String?
+
 begin
   r.connect({host: "rethinkdb"}).close
   $rethinkdb_host = "rethinkdb"
