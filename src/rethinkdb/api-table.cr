@@ -25,5 +25,9 @@ module RethinkDB
     def index_wait(name)
       DatumTerm.new(TermType::INDEX_WAIT, [self, name])
     end
+
+    def index_list
+      DatumTerm.new(TermType::INDEX_LIST, [self])
+    end
   end
 end
