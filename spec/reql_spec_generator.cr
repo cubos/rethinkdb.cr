@@ -48,7 +48,7 @@ if tables = data["table_variable_name"]?
   puts
   tables.as_s.split(", ").map(&.split(" ")).flatten.each_with_index do |tablevar, i|
     random_name = "test_#{Time.now.epoch}_#{rand(10000)}_#{i+1}"
-    puts "  r.db(\"test\").table_create(#{random_name.inspect}).run($reql_conn)"
+    puts "  r.db(\"test\").table_create(#{random_name.inspect}).run(Fixtures::TestDB.conn)"
     puts "  #{tablevar} = r.db(\"test\").table(#{random_name.inspect})"
   end
 end
@@ -65,7 +65,7 @@ data["tests"].each_with_index do |test, i|
     assign = (language_fixes (test["rb"]? || test["cd"]).as_s).split("=")
     var = assign[0].strip
     value = assign[1].strip
-    puts "  #{var} = #{value}.run($reql_conn).as_i"
+    puts "  #{var} = #{value}.run(Fixtures::TestDB.conn).as_i"
   else test["ot"]?
     subtests = test["rb"]? || test["cd"]?
     next unless subtests
@@ -98,14 +98,14 @@ data["tests"].each_with_index do |test, i|
       puts "  #{ARGV.includes?(test_id) ? "pending" : "it"} \"passes on test #{test_id}: #{subtest.gsub("\\", "\\\\").gsub("\"", "\\\"")}\" do"
       if output =~ /err\("(\w+)",\s?"(.+?)"[,)]/
         puts "    expect_raises(RethinkDB::#{$1}, \"#{$2.gsub("\\\\", "\\")}\") do"
-        puts "      (#{subtest}).run($reql_conn, #{runopts})"
+        puts "      (#{subtest}).run(Fixtures::TestDB.conn, #{runopts})"
         puts "    end"
       elsif output =~ /err_regex\("(\w+)",\s?"(.+?)"[,)]/
         puts "    expect_raises(RethinkDB::#{$1}, /#{$2.gsub("\\\\", "\\")}/) do"
-        puts "      (#{subtest}).run($reql_conn, #{runopts})"
+        puts "      (#{subtest}).run(Fixtures::TestDB.conn, #{runopts})"
         puts "    end"
       else
-        puts "    result = (#{subtest}).run($reql_conn, #{runopts})"
+        puts "    result = (#{subtest}).run(Fixtures::TestDB.conn, #{runopts})"
         puts "    match_reql_output(result) { (#{language_fixes output}) }"
       end
       puts "  end"

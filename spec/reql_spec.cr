@@ -1,10 +1,8 @@
 require "./spec_helper"
 
-$reql_conn : RethinkDB::Connection
-$reql_conn = r.connect({host: $rethinkdb_host})
 r.db("test").table_list.for_each do |name|
   r.db("test").table_drop(name)
-end.run($reql_conn)
+end.run(Fixtures::TestDB.conn)
 
 def match_reql_output(result)
   result = result.to_a if result.is_a? RethinkDB::Cursor
