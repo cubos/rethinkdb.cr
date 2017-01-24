@@ -2,6 +2,10 @@ require "./term"
 
 module RethinkDB
   class TableTerm < RowsTerm
+    def info
+      RowTerm.new(TermType::INFO, [self])
+    end
+    
     def insert(doc)
       DatumTerm.new(TermType::INSERT, [self, doc])
     end
