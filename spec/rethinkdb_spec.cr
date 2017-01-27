@@ -14,6 +14,33 @@ describe RethinkDB do
     end
   end
 
+  it "db#table_create(String, **options)" do
+    5.times do
+      Generators.random_table do |table|
+        Generators.random_pk do |pk|
+          r.table_create(table).run Fixtures::TestDB.conn, {"primary_key" => pk}
+          info = r.table(table).info.run Fixtures::TestDB.conn
+          info["primary_key"].should eq pk
+          info["name"].should eq table
+          r.table_drop(table).run Fixtures::TestDB.conn
+        end
+      end
+    end
+  end
+
+  it "table#info(String)" do
+    5.times do
+      Generators.random_table do |table|
+        r.table_create(table).run Fixtures::TestDB.conn
+        info = r.table(table).info.run Fixtures::TestDB.conn
+        info["type"].should eq "TABLE"
+        info["primary_key"].should eq "id"
+        info["name"].should eq table
+        r.table_drop(table).run Fixtures::TestDB.conn
+      end
+    end
+  end
+
   it "works" do
     # conn = r.connect({host: "rethinkdb"})
     # r.expr(3).run(conn).should eq 3
