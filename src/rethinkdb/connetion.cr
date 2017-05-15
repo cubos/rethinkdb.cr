@@ -27,8 +27,8 @@ module RethinkDB
         raise ReqlDriverError.new
       end
 
-      unless error.chop == "SUCCESS"
-        raise ReqlDriverError.new(error.chop)
+      unless error.rchop == "SUCCESS"
+        raise ReqlDriverError.new(error.rchop)
       end
 
       @channels = {} of UInt64 => Channel::Unbuffered(String)
@@ -79,7 +79,7 @@ module RethinkDB
         runopts.each do |key, val|
           @runopts[key] = val
         end
-        @runopts["db"] = r.db(@conn.@db).to_reql
+        @runopts["db"] = RethinkDB.db(@conn.@db).to_reql
       end
 
       def query_term(term)
@@ -197,3 +197,4 @@ module RethinkDB
     end
   end
 end
+
