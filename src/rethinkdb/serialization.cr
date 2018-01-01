@@ -1,7 +1,8 @@
 require "json"
 require "./term"
+require "uuid"
 
-alias ReqlType = Nil | Bool | Int64 | Float64 | String | Array(ReqlType) | Hash(String, ReqlType)
+alias ReqlType = Nil | Bool | Int64 | Float64 | String | UUID | Array(ReqlType) | Hash(String, ReqlType)
 
 class Array(T)
   def to_reql
@@ -20,6 +21,13 @@ struct Tuple
     }.as JSON::Type
   end
 end
+
+struct UUID
+  def to_reql
+    to_s.to_reql
+  end
+end
+
 
 class Hash(K, V)
   def to_reql
