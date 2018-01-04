@@ -50,6 +50,14 @@ module RethinkDB
       StreamTerm.new(TermType::PLUCK, [self] + args.to_a)
     end
 
+    def concat_map(callable)
+      StreamTerm.new(TermType::CONCAT_MAP, [self, callable])
+    end
+
+    def concat_map
+      StreamTerm.new(TermType::CONCAT_MAP, [self, Func.arity1 {|row| yield(row) }])
+    end
+
     def map(callable)
       StreamTerm.new(TermType::MAP, [self, callable])
     end
